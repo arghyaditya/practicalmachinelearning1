@@ -68,8 +68,14 @@ img {
 </div>
 
 
-<p>This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <a href="http://rmarkdown.rstudio.com" class="uri">http://rmarkdown.rstudio.com</a>.</p>
-<p>When you click the <strong>Knit</strong> button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:</p>
+<p>Background</p>
+<p>Devices such as Jawbone Up, Nike FuelBand, and Fitbit now can collect large amount of data about personal activity relatively inexpensively. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it.</p>
+<p>The goal of this project is to predict the manner in which they did the exercise. This is the “classe” variable in the training set. Other variables would be used to predict classe. The following report describes the steps taken to build classification model, use of cross validation and notes on the interpretation of the results.</p>
+<p>Classe variable consists of the following:</p>
+<p>Class A: exactly according to the specification Class B: throwing the elbows to the front Class C: lifting the dumbbell only halfway Class D: lowering the dumbbell only halfway Class E: throwing the hips to the front</p>
+<p>More information is available in website: <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a></p>
+<p>The Write Up is divided into following sections</p>
+<p>Objective of the exercise Data Import Exploratory Data Analysis Model Building/ Evaluation Cross Validation Model Results &amp; Interpretation</p>
 <pre class="r"><code>cbind(Summary=summary(cars), SD_Speed=sd(cars$speed), SD_dist=sd(cars$dist))</code></pre>
 <pre><code>##      speed             dist          SD_Speed           SD_dist           
 ##  &quot;Min.   : 4.0  &quot; &quot;Min.   :  2.00  &quot; &quot;5.28764443523478&quot; &quot;25.7693774920259&quot;

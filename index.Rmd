@@ -5,9 +5,31 @@ date: "22 December 2015"
 output: html_document
 ---
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Background
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Devices such as Jawbone Up, Nike FuelBand, and Fitbit now can collect large amount of data about personal activity relatively inexpensively. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it.
+
+The goal of this project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. Other variables would be used to predict classe. The following report describes the steps taken to build classification model, use of cross validation and notes on the interpretation of the results.
+
+Classe variable consists of the following:
+
+Class A: exactly according to the specification
+Class B: throwing the elbows to the front
+Class C: lifting the dumbbell only halfway
+Class D: lowering the dumbbell only halfway
+Class E: throwing the hips to the front
+
+More information is available in website: http://groupware.les.inf.puc-rio.br/har
+
+The Write Up is divided into following sections
+
+Objective of the exercise
+Data Import
+Exploratory Data Analysis
+Model Building/ Evaluation
+Cross Validation
+Model Results & Interpretation
+
 
 ```{r}
 cbind(Summary=summary(cars), SD_Speed=sd(cars$speed), SD_dist=sd(cars$dist))
