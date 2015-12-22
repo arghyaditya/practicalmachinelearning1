@@ -1,5 +1,5 @@
 ---
-title: "index.Rmd"
+title: "Practical Meachine Learning - JHS"
 author: "Arghya Ghosh"
 date: "22 December 2015"
 output: html_document
