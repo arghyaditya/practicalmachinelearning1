@@ -1,11 +1,11 @@
 ---
-title: "Practical Meachine Learning - JHS"
+title: "Practical Meachine Learning - Qualitative Activity Recognition of Weight Lifting Exercises"
 author: "Arghya Ghosh"
-date: "22 December 2015"
+date: "27 December 2015"
 output: html_document
 ---
 
-Background
+## __Background__
 
 Devices such as Jawbone Up, Nike FuelBand, and Fitbit now can collect large amount of data about personal activity relatively inexpensively. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it.
 
@@ -13,34 +13,170 @@ The goal of this project is to predict the manner in which they did the exercise
 
 Classe variable consists of the following:
 
-Class A: exactly according to the specification
-Class B: throwing the elbows to the front
-Class C: lifting the dumbbell only halfway
-Class D: lowering the dumbbell only halfway
-Class E: throwing the hips to the front
+* Class A: exactly according to the specification
+* Class B: throwing the elbows to the front
+* Class C: lifting the dumbbell only halfway
+* Class D: lowering the dumbbell only halfway
+* Class E: throwing the hips to the front
 
 More information is available in website: http://groupware.les.inf.puc-rio.br/har
 
 The Write Up is divided into following sections
 
-Objective of the exercise
-Data Import
-Exploratory Data Analysis
-Model Building/ Evaluation
-Cross Validation
-Model Results & Interpretation
+1. Objective of the exercise
+2. Data Loading & Cleaning
+3. Cross Validation
+4. Data Preprocessing
+5. Model Building
+6. Model Results & Interpretation
 
+
+### __Objective__
+
+To predict the correct way of performing weight lifting exercises.
+
+### __Data Loading & Cleaning__
+
+```{r load_packages, message=FALSE, warning=FALSE}
+library(caret)
+library(corrgram)
+library(rpart)
+library(rpart.plot)
+library(randomForest)
+library(ggplot2)
+```
 
 ```{r}
-cbind(Summary=summary(cars), SD_Speed=sd(cars$speed), SD_dist=sd(cars$dist))
+setwd("E:\\Education\\Johns_Hopkins\\8_Practical_Machine_Learning\\Week3\\WriteUp")
+
+# Load data and perform basic row and column checks
+pml_data <- read.csv("pml-training.csv", header = T, na.strings = c("NA", ""))
+# Print information
+cbind(Total_Row=nrow(pml_data),Total_Col=ncol(pml_data))
+
+# Find the numbers and percentage of NAs per column 
+NA_Count <- data.frame(cbind(NAs=colSums(is.na(pml_data)), Total=nrow(pml_data), Percentage=round((colSums(is.na(pml_data))/nrow(pml_data)*100),2)))
+print(paste0("Total number of columns with low % of NAs: ", nrow(subset(NA_Count, NA_Count$Percentage==0))))
 ```
 
-You can also embed plots, for example:
+Selecting the specific variables which have low percentage of NAs and are informative.
 
-```{r, echo=FALSE}
-plot(cars)
-hist(cars$speed)
-hist(cars$dist)
+```{r}
+# Select these 60 columns in the pml_data
+pml_data <- pml_data[, colSums(is.na(pml_data))==0]
+# First 7 columns do have information that would help build the model. Selcting columns 8 to 60
+pml_data <- pml_data[,8:60]
+# Print information
+cbind(Total_Row=nrow(pml_data),Total_Col=ncol(pml_data))
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Identifying variables with zero or near zero variance.
+
+```{r}
+pml_nzv <- nearZeroVar(pml_data, saveMetrics = T)
+if(length(unique(pml_nzv$nzv))==1){
+    print("No near zero variance variable in the dataset")
+} else {
+    print(paste0("No of near zero variance variables are: ", nrow(subset(pml_nzv$nzv, nzv=="TRUE"))))
+}
+rm(NA_Count, pml_nzv)
+```
+
+Identifying highly correlated predictors.
+
+```{r}
+pml_data_corr <- pml_data[-53]
+pml_data_highcorr <- findCorrelation(cor(pml_data_corr), cutoff = 0.75, verbose = F)
+head(pml_data_highcorr,length(pml_data_highcorr))
+
+# High correlation column names are as follows
+colnames(pml_data[,pml_data_highcorr])
+```
+
+```{r}
+# Showing the correlogram of high correlation variables in the same order of variables provided above.. Deep red is high negative correlation and deep blue is high positive correlation
+pml_data_highcorr1 <- pml_data[,pml_data_highcorr]
+pml_data_corr3 <- cor(pml_data_highcorr1)
+# png("Corrgram.png", width = 1050, height = 1050)
+corrgram(pml_data_corr3, order = F, lower.panel = panel.shade, upper.panel = NULL, text.panel = panel.txt, diag.panel=panel.minmax, cex.labels = 1.2, label.pos=c(0.3, 0.5), main="Correlogram showing the correlation between highly correlated variables.")
+# dev.off()
+```
+
+```{r}
+pml_data_corr2 <- cor((pml_data_corr[,-pml_data_highcorr]))
+rbind(Wo_Filter=summary(pml_data_corr[upper.tri(cor(pml_data_corr))]), W_Filter=summary(pml_data_corr2[upper.tri(pml_data_corr2)]))
+pml_data <- pml_data[,-pml_data_highcorr]
+cbind(Total_Row=nrow(pml_data),Total_Col=ncol(pml_data))
+
+```
+
+
+### __Cross Validation__
+
+Create cross validation data sets - Train and Test.
+
+```{r}
+set.seed(471210)
+pml_data_split <- createDataPartition(pml_data$classe, p=0.7, list = F)
+
+pml_data_train <- pml_data[pml_data_split,]
+pml_data_test <- pml_data[-pml_data_split,]
+rbind(train=dim(pml_data_train), test=dim(pml_data_test))
+```
+
+### __Data Preprocessing__
+
+Centering and Scaling Train Data.
+
+```{r}
+pml_data_train_pp <- preProcess(pml_data_train[,-33], method = c("center", "scale","YeoJohnson"))
+pml_data_train_ppp <- predict(pml_data_train_pp, newdata = pml_data_train[,-33])
+pml_data_train_ppp$classe <- pml_data_train$classe # Including the classe variable in Train data
+# Incorporating same changes to test data
+pml_data_test_ppp <- predict(pml_data_train_pp, newdata = pml_data_test[,-33])
+pml_data_test_ppp$classe <- pml_data_test$classe # Including the classe variable in Test data
+```
+
+### __Model Building 1: Decision Tree__
+
+```{r}
+# Model Building: Decision Tree
+set.seed(1227)
+d_tree <- rpart(classe~., data = pml_data_test_ppp, method = "class")
+# png("Decision Tree.png", width = 1050, height = 1050)
+plot(d_tree)
+text(d_tree, pretty = 0, cex=.5, col="blue")
+title(main = "Decision Tree", col.main="indianred")
+# dev.off()
+```
+
+__Model Accuracy: Decision Tree__
+
+We use the model built on the training data to predict results in test data set by using predict function. We look at the result by using function confusionMatrix.
+
+```{r}
+# Model Validation
+d_tree_val <- predict(d_tree, pml_data_test_ppp, type = "class")
+d_tree_val_confusionm <- confusionMatrix(d_tree_val, pml_data_test_ppp$classe)
+d_tree_val_confusionm
+```
+By observing the __Accuracy__ of __0.6972__ and confusion matrix, we find that the model is __not able to classify the qualitative weight lifting activities properly__. 
+
+### __Model Building 2: Random Forest__
+
+Testing out Randomforest model on the train data set and predicting the value in test data set.
+
+```{r}
+set.seed(371210)
+rf_mtry <- tuneRF(pml_data_train_ppp[,-33], pml_data_train_ppp$classe, ntreeTry = 150, stepFactor = 1.5, improve = 0.01, trace = T, plot = T, doBest = F)
+rf_mtry1 <- rf_mtry[as.numeric(which.min(rf_mtry[,"OOBError"])),"mtry"]
+rf_model <- randomForest(classe~., data = pml_data_train_ppp)
+rf_model_val <- predict(rf_model, pml_data_test_ppp, type = "class")
+varImpPlot(rf_model, type = 2)
+# Checkig the accuracy of the model on test data set
+rf_model_confusionm <- confusionMatrix(rf_model_val, pml_data_test_ppp$classe)
+rf_model_confusionm
+```
+By observing the __Accuracy__ of __ 0.9942__ and confusion matrix, we find that the model is __able to classify the qualitative weight lifting activities better than decision tree model__.
+
+
