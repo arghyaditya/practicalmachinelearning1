@@ -177,6 +177,5 @@ varImpPlot(rf_model, type = 2)
 rf_model_confusionm <- confusionMatrix(rf_model_val, pml_data_test_ppp$classe)
 rf_model_confusionm
 ```
-By observing the __Accuracy__ of __ 0.9942__ and confusion matrix, we find that the model is __able to classify the qualitative weight lifting activities better than decision tree model__.
-
+By observing the __Accuracy__ of __0.9942__ and confusion matrix, we find that the model is __able to classify the qualitative weight lifting activities better than decision tree model__.
 
