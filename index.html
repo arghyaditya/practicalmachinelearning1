@@ -234,7 +234,7 @@ d_tree_val_confusionm</code></pre>
 ## Detection Rate         0.2481  0.08887   0.1528  0.09669   0.1108
 ## Detection Prevalence   0.3257  0.13135   0.2629  0.15718   0.1229
 ## Balanced Accuracy      0.8818  0.70325   0.8714  0.75895   0.7939</code></pre>
-<p>By observing the <strong>Accuracy</strong> of <strong>0.6972</strong> and confusion matrix, we find that the model is <strong>not able to classify the qualitative weight lifting activities properly</strong>.</p>
+<p>By observing the insample <strong>Accuracy</strong> of <strong>0.6972</strong> and confusion matrix, we find that the model is <strong>not able to classify the qualitative weight lifting activities properly</strong>.</p>
 </div>
 <div id="model-building-2-random-forest" class="section level3">
 <h3><strong>Model Building 2: Random Forest</strong></h3>
@@ -288,8 +288,30 @@ rf_model_confusionm</code></pre>
 ## Detection Rate         0.2845   0.1922   0.1720   0.1624   0.1830
 ## Detection Prevalence   0.2853   0.1937   0.1735   0.1641   0.1833
 ## Balanced Accuracy      0.9994   0.9955   0.9923   0.9948   0.9975</code></pre>
-<p>By observing the <strong>Accuracy</strong> of <strong>0.9942</strong> and confusion matrix, we find that the model is <strong>able to classify the qualitative weight lifting activities better than decision tree model</strong>.</p>
+<p>By observing the insample <strong>Accuracy</strong> of <strong>0.9942</strong> and confusion matrix, we find that the model is <strong>able to classify the qualitative weight lifting activities better than decision tree model</strong>.</p>
 </div>
+</div>
+<div id="out-of-sample-prediction" class="section level2">
+<h2><strong>Out of sample prediction</strong></h2>
+<p>We are using the randomforest prediction algorithm since it provided higher insample accuracy rate of 0.9942. The same algorithm is used to predict the qualitative activity recognition.</p>
+<pre class="r"><code># Out of Sample Test
+setwd(&quot;E:\\Education\\Johns_Hopkins\\8_Practical_Machine_Learning\\Week3\\WriteUp&quot;)
+pml_data_test&lt;- read.csv(&quot;pml-testing.csv&quot;, header = T, na.strings = c(&quot;NA&quot;, &quot;&quot;,&quot;&quot;)) # Loading test data
+pml_data_test&lt;- pml_data_test[, colSums(is.na(pml_data_test))==0] # NA treatment
+pml_data_test &lt;- pml_data_test[,8:60] # Informative columns included
+pml_data_test &lt;- pml_data_test[,-c(10,1,9,22,4,36,8,2,37,35,38,21,34,23,25,12,48,19,46,31)] # Highly correlated variables are excluded
+pml_data_test &lt;- predict(pml_data_train_pp, newdata = pml_data_test[,-33]) # Centering and scaling
+pml_data_test_val &lt;- predict(rf_model, pml_data_test, type = &quot;class&quot;) # Randomforest prediction
+
+# Use the provided to code to create a function for making multiple files
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0(&quot;problem_id_&quot;,i,&quot;.txt&quot;)
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}</code></pre>
+<p>The result would be provided by code: <strong>pml_write_files(pml_data_test_val)</strong></p>
 </div>
 
 

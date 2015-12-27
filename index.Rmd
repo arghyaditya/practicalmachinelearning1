@@ -160,7 +160,7 @@ d_tree_val <- predict(d_tree, pml_data_test_ppp, type = "class")
 d_tree_val_confusionm <- confusionMatrix(d_tree_val, pml_data_test_ppp$classe)
 d_tree_val_confusionm
 ```
-By observing the __Accuracy__ of __0.6972__ and confusion matrix, we find that the model is __not able to classify the qualitative weight lifting activities properly__. 
+By observing the insample __Accuracy__ of __0.6972__ and confusion matrix, we find that the model is __not able to classify the qualitative weight lifting activities properly__. 
 
 ### __Model Building 2: Random Forest__
 
@@ -177,5 +177,32 @@ varImpPlot(rf_model, type = 2)
 rf_model_confusionm <- confusionMatrix(rf_model_val, pml_data_test_ppp$classe)
 rf_model_confusionm
 ```
-By observing the __Accuracy__ of __0.9942__ and confusion matrix, we find that the model is __able to classify the qualitative weight lifting activities better than decision tree model__.
+By observing the insample __Accuracy__ of __0.9942__ and confusion matrix, we find that the model is __able to classify the qualitative weight lifting activities better than decision tree model__.
+
+## __Out of sample prediction__
+
+We are using the randomforest prediction algorithm since it provided higher insample accuracy rate of 0.9942. The same algorithm is used to predict the qualitative activity recognition.
+```{r}
+# Out of Sample Test
+setwd("E:\\Education\\Johns_Hopkins\\8_Practical_Machine_Learning\\Week3\\WriteUp")
+pml_data_test<- read.csv("pml-testing.csv", header = T, na.strings = c("NA", "","")) # Loading test data
+pml_data_test<- pml_data_test[, colSums(is.na(pml_data_test))==0] # NA treatment
+pml_data_test <- pml_data_test[,8:60] # Informative columns included
+pml_data_test <- pml_data_test[,-c(10,1,9,22,4,36,8,2,37,35,38,21,34,23,25,12,48,19,46,31)] # Highly correlated variables are excluded
+pml_data_test <- predict(pml_data_train_pp, newdata = pml_data_test[,-33]) # Centering and scaling
+pml_data_test_val <- predict(rf_model, pml_data_test, type = "class") # Randomforest prediction
+
+# Use the provided to code to create a function for making multiple files
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+```
+
+The result would be provided by code: 
+__pml_write_files(pml_data_test_val)__
+
 
